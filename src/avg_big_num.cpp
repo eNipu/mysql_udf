@@ -27,6 +27,7 @@ extern "C"
 struct big_average_data
 {
     mpz_t total;
+    mpz_t count;
 };
 
 bool big_average_init(UDF_INIT *initid, UDF_ARGS *args, char *message)
@@ -46,8 +47,10 @@ bool big_average_init(UDF_INIT *initid, UDF_ARGS *args, char *message)
     }
 
     mpz_init(data->total);
-    
+    mpz_init(data->count);
+
     mpz_set_ui(data->total, 0);
+    mpz_set_ui(data->count, 0);
 
     initid->ptr = (char *)data;
     return 0;
@@ -58,6 +61,7 @@ void big_average_deinit(UDF_INIT *initid)
     void *void_ptr = initid->ptr;
     big_average_data *data = static_cast<big_average_data *>(void_ptr);
     mpz_clear(data->total);
+    mpz_clear(data->count);
     delete data;
 }
 
@@ -88,6 +92,7 @@ void big_average_add(UDF_INIT *initid, UDF_ARGS *args,
         const char *as = (const char *)args->args[0];
         mpz_set_str(a, as, 16);
         mpz_add(data->total, data->total, a);
+        mpz_add_ui(data->count, data->count, 1);
         mpz_clear(a);
     }
 }
@@ -96,6 +101,8 @@ char *big_average(UDF_INIT *initid, UDF_ARGS *args, char *result, unsigned long 
 {
     struct big_average_data *data = (struct big_average_data *)initid->ptr;
     *is_null = 0;
+    // calculate the average here
+    mpz_div(data->total, data->total, data->count);
     // convert total to hex string
     mpz_get_str(result, 16, data->total);
     *length = strlen(result);

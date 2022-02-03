@@ -12,9 +12,8 @@ connection = pymysql.connect(host='localhost',
                              port = 3308,
                              charset='utf8mb4',
                              cursorclass=pymysql.cursors.DictCursor)
-# create test table
-cursor = connection.cursor()
 
+cursor = connection.cursor()
 
 def bytes_to_int(bytes_val: bytes) -> int:
     return int.from_bytes(bytes_val, "big")
@@ -49,22 +48,16 @@ def int_to_hex(val:int)->str:
 def test_big_average():
     input_range = 5
 
-    vals = [random.randint(2**31, 2**64) for _ in range(input_range)]
+    vals = [random.randint(2**256, 2**512) for _ in range(input_range)]
     # vals = [25, 25, 25, 25, 25]
-    print(vals)
+    # print(vals)
     sum = 0
 
     for v in vals:
         sum += v
-        hs = int_to_bytes(v)
-        # print(f'ctxt:{hs}')
-        # iv = int.from_bytes(hs, "big")
-        # print("int=", iv)
-        # hs = hex(v)
-
+        val_bytes = int_to_bytes(v)
         sql = f"""insert into galaxy values(%s);"""
-        print(f"sql to insert:: {sql}")
-        cursor.execute(sql, (hs))
+        cursor.execute(sql, (val_bytes))
         connection.commit()
 
     sql = f"SELECT big_average(HEX(no_of_atoms)) FROM galaxy;"
@@ -76,10 +69,11 @@ def test_big_average():
         for v in result.values():
             vals.append(v)
 
-    print(vals)
-    val_s = int(vals[0], 16)
-    print(val_s)
-    print("Python AVG = ", sum)
+    avg_int = int(vals[0], 16)
+    print("MySQL UDF AVG = ", avg_int)
+    py_avg = sum//input_range
+    print("Python AVG    = ", py_avg)
+    assert avg_int == py_avg
 
 
    

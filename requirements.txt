@@ -1,4 +1,4 @@
 pymysql
-mysql-connector-python
-PyMySQL
-cryptography
+# mysql-connector-python
+# PyMySQL
+# cryptography
