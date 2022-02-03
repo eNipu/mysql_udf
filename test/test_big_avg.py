@@ -1,19 +1,21 @@
-    
 # import mysql.connector as mydb
 import codecs
 import random
 import pymysql.cursors
 
 
-connection = pymysql.connect(host='localhost',
-                             user='root',
-                             password='password',
-                             database='test',
-                             port = 3308,
-                             charset='utf8mb4',
-                             cursorclass=pymysql.cursors.DictCursor)
+connection = pymysql.connect(
+    host="localhost",
+    user="root",
+    password="password",
+    database="test",
+    port=3308,
+    charset="utf8mb4",
+    cursorclass=pymysql.cursors.DictCursor,
+)
 
 cursor = connection.cursor()
+
 
 def bytes_to_int(bytes_val: bytes) -> int:
     return int.from_bytes(bytes_val, "big")
@@ -21,6 +23,7 @@ def bytes_to_int(bytes_val: bytes) -> int:
 
 def int_to_bytes(int_val: int) -> bytes:
     return int(int_val).to_bytes((int(int_val).bit_length() + 7) // 8, "big")
+
 
 def init_table():
     sql = "create table if not exists galaxy (no_of_atoms blob);"
@@ -42,13 +45,11 @@ def drop_table():
     sql = """DROP TABLE galaxy;"""
     cursor.execute(sql)
 
-def int_to_hex(val:int)->str:
-    return val.to_bytes(((int.bit_length() + 7) // 8), "big").hex()
 
 def test_big_average():
     input_range = 5
 
-    vals = [random.randint(2**256, 2**512) for _ in range(input_range)]
+    vals = [random.randint(2 ** 256, 2 ** 512) for _ in range(input_range)]
     # vals = [25, 25, 25, 25, 25]
     # print(vals)
     sum = 0
@@ -71,15 +72,13 @@ def test_big_average():
 
     avg_int = int(vals[0], 16)
     print("MySQL UDF AVG = ", avg_int)
-    py_avg = sum//input_range
+    py_avg = sum // input_range
     print("Python AVG    = ", py_avg)
     assert avg_int == py_avg
 
-
-   
 
 init_table()
 # init_function()
 test_big_average()
 # drop_function()
-drop_table()
+# drop_table()

@@ -1,3 +1,6 @@
+/*
+https://dev.mysql.com/doc/extending-mysql/8.0/en/adding-loadable-function.html
+*/
 #if defined(MYSQL_SERVER)
 #include <m_string.h> /* To get stpcpy() */
 #else
@@ -30,6 +33,8 @@ struct big_average_data
     mpz_t count;
 };
 
+// Call xxx_init() to let the aggregate function allocate any memory it needs for storing results.
+// The initialization function for xxx().
 bool big_average_init(UDF_INIT *initid, UDF_ARGS *args, char *message)
 {
     struct big_average_data *data;
@@ -56,6 +61,9 @@ bool big_average_init(UDF_INIT *initid, UDF_ARGS *args, char *message)
     return 0;
 }
 
+/* The deinitialization function for xxx(). If present, it should deallocate any memory allocated by the initialization function.
+ */
+
 void big_average_deinit(UDF_INIT *initid)
 {
     void *void_ptr = initid->ptr;
@@ -72,16 +80,20 @@ void big_average_reset(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *me
     big_average_add(initid, args, is_null, message);
 }
 
-/* This is needed to get things to work in MySQL 4.1.1 and above */
+/*
+This is needed to get things to work in MySQL 4.1.1 and above.
+Reset the current aggregate value but do not insert the argument as the initial aggregate value for a new group.
+*/
 void big_average_clear(UDF_INIT *initid, char *is_null,
-                        char *message)
+                       char *message)
 {
     struct big_average_data *data = (struct big_average_data *)initid->ptr;
 }
 
+// Add the argument to the current aggregate value.
 void big_average_add(UDF_INIT *initid, UDF_ARGS *args,
-                      char *is_null,
-                      char *message)
+                     char *is_null,
+                     char *message)
 {
     if (args->args[0] && args->args[0])
     {
@@ -97,6 +109,7 @@ void big_average_add(UDF_INIT *initid, UDF_ARGS *args,
     }
 }
 
+// Call xxx() to get the result for the aggregate when the group changes or after the last row has been processed.
 char *big_average(UDF_INIT *initid, UDF_ARGS *args, char *result, unsigned long *length, char *is_null, char *error)
 {
     struct big_average_data *data = (struct big_average_data *)initid->ptr;
